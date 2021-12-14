@@ -278,6 +278,46 @@ class _ManagerState extends State<Manager> with PreferencesMixin {
                         });
                       },
               ),
+              IconButton(
+                icon: Icon(
+                  Icons.delete,
+                  color: active ? null : buttonColor,
+                  semanticLabel: 'Delete'
+                ),
+                onPressed: active ? null : () {
+                  showDialog<String?>(
+                    context: context,
+                    builder: (BuildContext context) => AlertDialog(
+                      title: Text('Delete ' + currentVm),
+                      content: Text(
+                          'You are about to delete ' + currentVm + '. This cannot be undone. ' +
+                          'Would you like to delete the disk image but keep the ' +
+                          'configuration, or delete the whole VM?'
+                      ),
+                      actions: [
+                        TextButton(
+                          child: Text('Cancel'),
+                          onPressed: () => Navigator.pop(context, 'cancel'),
+                        ),
+                        TextButton(
+                          child: Text('Delete disk image'),
+                          onPressed: () => Navigator.pop(context, 'disk'),
+                        ),
+                        TextButton(
+                          child: Text('Delete whole VM'),
+                          onPressed: () => Navigator.pop(context, 'vm'),
+                        )  // set up the AlertDialog
+                      ],
+                    ),
+                  ).then((result) async {
+                    result = result ?? 'cancel';
+                    if (result != 'cancel') {
+                      List<String> args = ['--vm', currentVm + '.conf', '--delete-' + result];
+                      await Process.start('quickemu', args);
+                    }
+                  });
+                },
+              ),
             ],
           )),
       if (connectInfo.isNotEmpty)
